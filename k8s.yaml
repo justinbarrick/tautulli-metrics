@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli-metrics
+  namespace: monitoring
+  labels:
+    app: tautulli-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli-metrics
+  template:
+    metadata:
+      labels:
+        app: tautulli-metrics
+    spec:
+      containers:
+      - name: tautulli-metrics
+        image: justinbarrick/tautulli-metrics:0.1.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TAUTULLI_URL
+          value: ""
+        - name: TAUTULLI_API_KEY
+          value: ""
+        - name: INFLUX_URL
+          value: ""
+        - name: INFLUX_DB
+          value: plex

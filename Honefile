@@ -1,0 +1,54 @@
+env = [
+    "DOCKER_USER=justinbarrick",
+    "DOCKER_PASS"
+]
+
+job "test" {
+    image = "golang:1.11.2"
+
+    env = {
+        "GO111MODULE" = "on"
+        "GOCACHE" = "/build/.gocache"
+        "GOPATH" = "/build/.go"
+    }
+
+    inputs = ["./cmd/*/*.go", "./pkg/**/*.go", "go.mod", "go.sum"]
+
+    shell = "go test ./cmd/... ./pkg/..."
+}
+
+job "build" {
+    deps = [ "test" ]
+
+    image = "golang:1.11.2"
+
+
+    env = {
+        "GO111MODULE" = "on"
+        "GOCACHE" = "/build/.gocache"
+        "GOPATH" = "/build/.go"
+        "CGO_ENABLED" = "0"
+    }
+
+    inputs = ["./cmd/*/*.go", "./pkg/**/*.go", "go.mod", "go.sum"]
+    output = "./tautulli-metrics"
+
+    shell = "go build -v -o ./tautulli-metrics ./cmd/tautulli_metrics.go"
+}
+
+job "docker" {
+    image = "justinbarrick/kaniko:latest"
+
+    deps = ["build"]
+    inputs = ["Dockerfile", "./tautulli-metrics"]
+
+    env = {
+        "DOCKER_USER" = "${environ.DOCKER_USER}",
+        "DOCKER_PASS" = "${environ.DOCKER_PASS}",
+    }
+
+    shell = <<EOF
+kaniko --dockerfile=Dockerfile --context=/build/ \
+    --destination=${environ.DOCKER_USER}/tautulli-metrics:0.1.0
+EOF
+}
