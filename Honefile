@@ -31,7 +31,7 @@ job "build" {
     }
 
     inputs = ["./cmd/*/*.go", "./pkg/**/*.go", "go.mod", "go.sum"]
-    output = "./tautulli-metrics"
+    outputs = ["./tautulli-metrics"]
 
     shell = "go build -v -o ./tautulli-metrics ./cmd/tautulli_metrics.go"
 }
@@ -43,12 +43,12 @@ job "docker" {
     inputs = ["Dockerfile", "./tautulli-metrics"]
 
     env = {
-        "DOCKER_USER" = "${environ.DOCKER_USER}",
-        "DOCKER_PASS" = "${environ.DOCKER_PASS}",
+        "DOCKER_USER" = "${env.DOCKER_USER}",
+        "DOCKER_PASS" = "${env.DOCKER_PASS}",
     }
 
     shell = <<EOF
 kaniko --dockerfile=Dockerfile --context=/build/ \
-    --destination=${environ.DOCKER_USER}/tautulli-metrics:0.1.0
+    --destination=${env.DOCKER_USER}/tautulli-metrics:0.1.0
 EOF
 }
